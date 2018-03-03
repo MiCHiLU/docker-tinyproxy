@@ -1,0 +1,12 @@
+[
+  {
+    "execute-command": "/opt/docker-tinyproxy/run.sh",
+    "id": "reload-tinyproxy",
+    "pass-arguments-to-command": [
+      {
+        "name": "ip",
+        "source": "payload"
+      }
+    ]
+  }
+]
