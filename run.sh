@@ -60,6 +60,7 @@ displayUsage() {
 
 stopService() {
     screenOut "Checking for running Tinyproxy service..."
+    [ "$(pidof tail)" ] && killall tail
     if [ "$(pidof tinyproxy)" ]; then
         screenOut "Found. Stopping Tinyproxy service for pre-configuration..."
         killall tinyproxy
