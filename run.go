@@ -42,25 +42,38 @@ func main() {
 		{`[ "$(pidof tinyproxy)" ] && killall tinyproxy`, "tinyproxy service stopping"},
 	})
 
-	// Set ACL in Tinyproxy config
+	lines := make([]string, 0)
 
+	// Set DisableViaHeader in Tinyproxy config
+	execCmds([][2]string{
+		{fmt.Sprintf(`sed -i -e"/^DisableViaHeader.*/d" %s`, proxyConf), "remove DisableViaHeader lines from tinyproxy conf"},
+	})
+
+	disableViaHeader := viper.GetBool(`TINYPROXY_DISABLE_VIA_HEADER`)
+	if disableViaHeader {
+		logger.Infof("TINYPROXY_DISABLE_VIA_HEADER: %v", disableViaHeader)
+		lines = append(lines, "DisableViaHeader yes\n")
+	}
+
+	// Set ACL in Tinyproxy config
 	execCmds([][2]string{
 		{fmt.Sprintf(`sed -i -e"/^Allow.*/d" %s`, proxyConf), "remove Allow lines from tinyproxy conf"},
 	})
-	allows := make([]string, 0)
 	for _, allow := range strings.Split(strings.Trim(viper.GetString(`TINYPROXY_ALLOW`), " "), " ") {
 		if allow == "" {
 			continue
 		}
 		logger.Infof("TINYPROXY_ALLOW: %q", allow)
-		allows = append(allows, fmt.Sprintf("Allow %s\n", allow))
+		lines = append(lines, fmt.Sprintf("Allow %s\n", allow))
 	}
+
+	// Write to Tinyproxy config
 	f, err := os.OpenFile(proxyConf, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		logger.Errorf("open the tinyproxy conf: "+errorFormat, err)
 	}
 	defer f.Close()
-	_, err = f.WriteString(strings.Join(allows, ""))
+	_, err = f.WriteString(strings.Join(lines, ""))
 	if err != nil {
 		logger.Errorf("write to the tinyproxy conf: "+errorFormat, err)
 	}
