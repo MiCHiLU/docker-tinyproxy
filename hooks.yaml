@@ -1,6 +1,7 @@
 hooks:
 - id: reload-tinyproxy
-  execute-command: /opt/docker-tinyproxy/run.sh
-  pass-arguments-to-command:
+  execute-command: /opt/docker-tinyproxy/run
+  pass-environment-to-command:
   - source: payload
     name: ip
+    envname: TINYPROXY_ALLOW
